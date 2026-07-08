@@ -1,0 +1,19 @@
+# Deploy en Fly.io: `fly launch --copy-config` y luego `fly volumes create amphibian_data --size 1`
+app = "amphibian-os"
+primary_region = "qro"   # Queretaro, el mas cercano a CDMX
+
+[build]
+
+[env]
+  PORT = "4000"
+  DATABASE_URL = "file:/data/amphibian.db"
+
+[mounts]
+  source = "amphibian_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = false   # el bot de Telegram y el cron necesitan proceso vivo
+  min_machines_running = 1

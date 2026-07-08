@@ -1,0 +1,23 @@
+# Deploy en Render con Blueprint: sube el repo a GitHub y en Render
+# elige "New > Blueprint" apuntando al repo. El disco persistente
+# requiere plan Starter (~$7/mes); en plan free la DB se borra en cada deploy.
+services:
+  - type: web
+    name: amphibian-os
+    runtime: docker
+    plan: starter
+    disk:
+      name: amphibian-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: file:/data/amphibian.db
+      - key: AI_PROVIDER
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false

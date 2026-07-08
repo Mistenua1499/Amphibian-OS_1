@@ -1,0 +1,15 @@
+{
+  "name": "amphibian-os",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["server", "web"],
+  "scripts": {
+    "setup": "npm install && npm run seed",
+    "seed": "npm run -w server seed",
+    "dev": "npm run -w server dev",
+    "dev:web": "npm run -w web dev",
+    "build": "npm run -w web build",
+    "start": "npm run -w server start",
+    "smoke": "bash scripts/smoke.sh"
+  }
+}
