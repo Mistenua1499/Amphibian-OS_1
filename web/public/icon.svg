@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0A1220"/>
+  <circle cx="256" cy="230" r="120" fill="none" stroke="#00E5FF" stroke-width="18"/>
+  <circle cx="205" cy="200" r="26" fill="#00E5FF"/>
+  <circle cx="307" cy="200" r="26" fill="#00E5FF"/>
+  <path d="M 176 290 Q 256 340 336 290" stroke="#00E676" stroke-width="16" fill="none" stroke-linecap="round"/>
+  <path d="M 140 380 L 200 420 M 372 380 L 312 420" stroke="#00E5FF" stroke-width="14" stroke-linecap="round"/>
+  <text x="256" y="486" font-family="monospace" font-size="52" fill="#00E5FF" text-anchor="middle" font-weight="bold">OS</text>
+</svg>

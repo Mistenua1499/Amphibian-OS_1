@@ -1,0 +1,163 @@
+// AMPHIBIAN OS - Modelo de datos
+// SQLite por default (local-first, cero config).
+// Para migrar a Postgres: cambia provider a "postgresql" y DATABASE_URL. Ver docs/MIGRAR_POSTGRES.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Entidad universal: PERSONA | EMPRESA | PROYECTO | IDEA | MODELO_MENTAL
+model Entity {
+  id            String   @id @default(uuid())
+  type          String // PERSONA, EMPRESA, PROYECTO, IDEA, MODELO_MENTAL
+  name          String
+  email         String?
+  phone         String?
+  company       String? // empresa asociada (texto libre para PERSONA)
+  role          String?
+  trust         Int      @default(50) // confianza 0-100
+  narrative     String? // que quiere, que valora, como comunicarse
+  tags          String   @default("") // separado por comas
+  data          String   @default("{}") // JSON extra
+  googleId      String? // vinculo con fila en Google Sheets
+  obsidianPath  String? // vinculo con nota en Obsidian
+  syncStatus    String   @default("PENDIENTE") // SINCRONIZADO, PENDIENTE, ERROR
+  lastSync      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  timeline       TimelineEvent[]
+  opportunities  Opportunity[]   @relation("PersonOpps")
+  relationsFrom  Relationship[]  @relation("FromEntity")
+  relationsTo    Relationship[]  @relation("ToEntity")
+}
+
+model Relationship {
+  id         String   @id @default(uuid())
+  fromId     String
+  toId       String
+  type       String // VINCULADO_A, MENCIONA, CAUSA, PERTENECE_A
+  createdAt  DateTime @default(now())
+  from       Entity   @relation("FromEntity", fields: [fromId], references: [id], onDelete: Cascade)
+  to         Entity   @relation("ToEntity", fields: [toId], references: [id], onDelete: Cascade)
+}
+
+model TimelineEvent {
+  id        String   @id @default(uuid())
+  entityId  String
+  event     String
+  type      String   @default("CONVERSACION") // CONVERSACION, DECISION, VICTORIA, ERROR, APRENDIZAJE
+  timestamp DateTime @default(now())
+  entity    Entity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+}
+
+model Opportunity {
+  id           String    @id @default(uuid())
+  name         String
+  description  String?
+  personId     String?
+  companyName  String?
+  stage        String    @default("LEAD") // LEAD, DIAGNOSTICADO, PROPUESTA, NEGOCIACION, GANADO, PERDIDO
+  value        Float     @default(0)
+  probability  Int       @default(50)
+  expectedClose DateTime?
+  nextAction   String?
+  nextActionAt DateTime?
+  notes        String?
+  amountPending Float    @default(0) // dinero por cobrar
+  dueDate      DateTime? // vencimiento de cobro
+  lastContact  DateTime  @default(now())
+  googleId     String?
+  syncStatus   String    @default("PENDIENTE")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  person       Entity?   @relation("PersonOpps", fields: [personId], references: [id])
+}
+
+model Capture {
+  id          String   @id @default(uuid())
+  channel     String   @default("APP") // APP, TELEGRAM, WHATSAPP, WEB
+  kind        String   @default("TEXTO") // TEXTO, AUDIO, FOTO, LINK, DOCUMENTO
+  raw         String // texto original o transcripcion
+  summary     String?
+  entities    String? // JSON: entidades detectadas por IA
+  hypothesis  String?
+  suggestedAction String?
+  aiCost      String? // que modelos se usaron
+  processed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model JournalEntry {
+  id          String   @id @default(uuid())
+  date        String   @unique // YYYY-MM-DD
+  whatHappened String?
+  learned     String?
+  hypothesis  String?
+  hypothesisConfidence Int @default(50)
+  decision    String?
+  promises    String? // JSON [{to, date, importance}]
+  mistakes    String?
+  wins        String? // solo hechos
+  nextAction  String?
+  gratitude   String? // 3 cosas
+  aiSummary   String?
+  exportedToObsidian Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HealthDay {
+  id         String   @id @default(uuid())
+  date       String   @unique // YYYY-MM-DD
+  sleepHours Float?
+  stress     Int?
+  restingHr  Int?
+  steps      Int?
+  energy     Int?
+  clarity    Int?
+  motivation Int?
+  peace      Int?
+  anxiety    Int?
+  createdAt  DateTime @default(now())
+}
+
+model FinanceMove {
+  id            String   @id @default(uuid())
+  date          DateTime @default(now())
+  amountIn      Float    @default(0)
+  amountOut     Float    @default(0)
+  category      String?
+  opportunityId String?
+  notes         String?
+}
+
+model Reminder {
+  id         String   @id @default(uuid())
+  rule       String // LEAD_FRIO, PROPUESTA_ESTANCADA, COBRO_PENDIENTE, SIN_PROXIMA_ACCION
+  message    String
+  severity   String   @default("NORMAL") // CRITICO, NORMAL
+  refId      String? // id de oportunidad/entidad relacionada
+  done       Boolean  @default(false)
+  sentTelegram Boolean @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model SyncLog {
+  id        String   @id @default(uuid())
+  target    String // GOOGLE_SHEETS, GOOGLE_CALENDAR, GOOGLE_DRIVE, OBSIDIAN
+  refId     String?
+  status    String // EXITOSO, ERROR
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
